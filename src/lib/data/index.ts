@@ -1,2 +1,4 @@
-// DataSource interface and implementations. Placeholder until MockDataSource is built.
-export {};
+export * from "./types";
+export * from "./errors";
+export type { AddNewcomerInput, DataSource, MarkPresentInput, UnmarkInput } from "./data-source";
+export { createMockDataSource, type MockDataSourceOptions } from "./mock/mock-data-source";
