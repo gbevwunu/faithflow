@@ -1,2 +1,4 @@
-// Church configuration schema and loader. Placeholder until the config is built.
-export {};
+export * from "./schema";
+export * from "./errors";
+export { getChurchConfig, listChurchSlugs, parseChurchConfig } from "./churches";
+export * from "./team";
