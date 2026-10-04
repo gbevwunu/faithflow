@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { Member, Newcomer } from "../types";
 
 // All seed data is fictional. Phones stay within the reserved fictional

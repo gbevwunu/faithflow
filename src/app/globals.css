@@ -1,26 +1,58 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Components use these through the Tailwind theme below; the default
+ * Tailwind palette is removed so no other colors are available.
+ * --ff-primary is set per church from its config (see app/[church]/layout.tsx).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ff-primary: #1f1b2e;
+  --ff-primary-light: #f3f1fa;
+  --ff-background: #f9f8fc;
+  --ff-surface: #ffffff;
+  --ff-on-primary: #ffffff;
+  --ff-ink: #1f1b2e;
+  --ff-muted: #6b6780;
+  --ff-border: #e4e1ee;
+  --ff-success: #1e8e5a;
+  /* Darker success for small text; #1e8e5a is below 4.5:1 on white. */
+  --ff-success-text: #1a7d4f;
+  --ff-success-light: #e6f4ec;
+  --ff-warning: #9a5d00;
+  --ff-warning-light: #fff4e0;
+
+  --ff-radius-card: 12px;
+  --ff-radius-input: 10px;
+  --ff-radius-chip: 16px;
+}
+
+@theme {
+  --color-*: initial;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-primary: var(--ff-primary);
+  --color-primary-light: var(--ff-primary-light);
+  --color-background: var(--ff-background);
+  --color-surface: var(--ff-surface);
+  --color-on-primary: var(--ff-on-primary);
+  --color-ink: var(--ff-ink);
+  --color-muted: var(--ff-muted);
+  --color-border: var(--ff-border);
+  --color-success: var(--ff-success);
+  --color-success-text: var(--ff-success-text);
+  --color-success-light: var(--ff-success-light);
+  --color-warning: var(--ff-warning);
+  --color-warning-light: var(--ff-warning-light);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-card: var(--ff-radius-card);
+  --radius-input: var(--ff-radius-input);
+  --radius-chip: var(--ff-radius-chip);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ff-background);
+  color: var(--ff-ink);
 }

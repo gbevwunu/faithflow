@@ -149,4 +149,18 @@ describe("searchRoster", () => {
       expect(searchRoster(people, "ane")).toEqual([]);
     });
   });
+
+  it("searches entries of another shape through a fields accessor", () => {
+    const rows = [
+      { key: "a", first: "Adaeze", last: "Okafor", last4: "4821" },
+      { key: "b", first: "Ade", last: "Bello", last4: "1177" },
+    ];
+    const fields = (r: (typeof rows)[number]) => ({
+      firstName: r.first,
+      lastName: r.last,
+      phone: r.last4,
+    });
+    expect(searchRoster(rows, "ad", fields).map((r) => r.key)).toEqual(["a", "b"]);
+    expect(searchRoster(rows, "4821", fields).map((r) => r.key)).toEqual(["a"]);
+  });
 });

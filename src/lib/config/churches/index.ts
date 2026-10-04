@@ -1,3 +1,5 @@
+import "server-only";
+
 import { InvalidChurchConfigError, UnknownChurchError } from "../errors";
 import { churchConfigSchema, type ChurchConfig } from "../schema";
 import { newbreed } from "./newbreed";

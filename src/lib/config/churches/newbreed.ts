@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { ChurchConfigInput } from "../schema";
 
 export const newbreed = {

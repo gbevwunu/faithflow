@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { AddNewcomerInput, DataSource, MarkPresentInput, UnmarkInput } from "../data-source";
 import { DuplicatePhoneError, PersonNotFoundError } from "../errors";
 import type { AttendanceMark, IsoDate, Member, Newcomer, Person, RosterEntry } from "../types";
@@ -43,7 +45,13 @@ export function createMockDataSource(options: MockDataSourceOptions = {}): DataS
       })) satisfies RosterEntry[];
     },
 
-    async markPresent({ personId, serviceDate, markedBy, isCorrection }: MarkPresentInput) {
+    async markPresent({
+      personId,
+      serviceDate,
+      markedBy,
+      isCorrection,
+      markedAt,
+    }: MarkPresentInput) {
       if (!findPerson(personId)) throw new PersonNotFoundError(personId);
       const key = markKey(personId, serviceDate);
       const existing = marks.get(key);
@@ -52,7 +60,7 @@ export function createMockDataSource(options: MockDataSourceOptions = {}): DataS
         personId,
         serviceDate,
         markedBy,
-        markedAt: now().toISOString(),
+        markedAt: (markedAt ?? now()).toISOString(),
         isCorrection,
       };
       marks.set(key, mark);

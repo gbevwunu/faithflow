@@ -90,3 +90,35 @@ export function getServiceDate(now: Date, config: Pick<ChurchConfig, "timezone">
   const { year, month, day } = toZonedDateTime(now, config.timezone);
   return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
+
+const WEEKDAYS: readonly Weekday[] = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+
+/** Shifts a YYYY-MM-DD calendar date by whole days. */
+export function addDays(date: IsoDate, days: number): IsoDate {
+  const [year, month, day] = date.split("-").map(Number);
+  const shifted = new Date(Date.UTC(year ?? NaN, (month ?? NaN) - 1, (day ?? NaN) + days));
+  return shifted.toISOString().slice(0, 10);
+}
+
+/**
+ * The church's most recent service date as of an instant, in its local timezone:
+ * today on the service day, otherwise the last service day before today.
+ */
+export function getLatestServiceDate(
+  now: Date,
+  config: Pick<ChurchConfig, "timezone" | "schedule">,
+): IsoDate {
+  const today = getServiceDate(now, config);
+  const weekday = toZonedDateTime(now, config.timezone).weekday;
+  const daysSince =
+    (WEEKDAYS.indexOf(weekday) - WEEKDAYS.indexOf(config.schedule.serviceDay) + 7) % 7;
+  return addDays(today, -daysSince);
+}

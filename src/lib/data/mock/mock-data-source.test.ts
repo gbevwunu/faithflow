@@ -197,4 +197,17 @@ describe("MockDataSource", () => {
     first.firstName = "Changed";
     expect((await firstPerson(ds, "member")).firstName).toBe(originalName);
   });
+
+  it("records a caller-supplied markedAt instead of its own clock", async () => {
+    const ds = createMockDataSource({ now: FIXED_NOW });
+    const member = await firstPerson(ds, "member");
+    const mark = await ds.markPresent({
+      personId: member.id,
+      serviceDate: SERVICE_DATE,
+      markedBy: TEAM_MEMBER_ID,
+      isCorrection: false,
+      markedAt: new Date("2026-10-04T16:42:00.000Z"),
+    });
+    expect(mark.markedAt).toBe("2026-10-04T16:42:00.000Z");
+  });
 });

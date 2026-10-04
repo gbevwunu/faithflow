@@ -6,6 +6,11 @@ export interface MarkPresentInput {
   /** Team member id. */
   markedBy: string;
   isCorrection: boolean;
+  /**
+   * When the mark was made. Defaults to the data source's clock; callers pass the same
+   * instant they used to check the marking window so the two always agree.
+   */
+  markedAt?: Date;
 }
 
 export interface UnmarkInput {
