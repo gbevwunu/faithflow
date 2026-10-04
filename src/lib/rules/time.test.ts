@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getServiceDate, zonedTimeToInstant } from "./time";
+import { getChurchConfig } from "@/lib/config";
+import { addDays, getLatestServiceDate, getServiceDate, zonedTimeToInstant } from "./time";
 
 const winnipeg = { timezone: "America/Winnipeg" };
 
@@ -49,5 +50,31 @@ describe("zonedTimeToInstant", () => {
     expect(zonedTimeToInstant("2026-03-08", "02:30", "America/Winnipeg").toISOString()).toBe(
       "2026-03-08T08:30:00.000Z",
     );
+  });
+});
+
+describe("addDays", () => {
+  it("shifts across month and year boundaries", () => {
+    expect(addDays("2026-10-04", -1)).toBe("2026-10-03");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+  });
+});
+
+describe("getLatestServiceDate", () => {
+  const config = getChurchConfig("newbreed");
+
+  it("is today on the service day", () => {
+    // Sun Oct 4, 10:00 CDT.
+    expect(getLatestServiceDate(new Date("2026-10-04T15:00:00Z"), config)).toBe("2026-10-04");
+  });
+
+  it("is the previous Sunday on a Monday", () => {
+    expect(getLatestServiceDate(new Date("2026-10-05T15:00:00Z"), config)).toBe("2026-10-04");
+  });
+
+  it("is six days back on a Saturday, even when it is already Sunday in UTC", () => {
+    // Sun Oct 4, 03:00 UTC is Sat Oct 3, 22:00 CDT.
+    expect(getLatestServiceDate(new Date("2026-10-04T03:00:00Z"), config)).toBe("2026-09-27");
   });
 });
