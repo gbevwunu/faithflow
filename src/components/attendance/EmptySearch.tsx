@@ -1,4 +1,12 @@
-export function EmptySearch({ query }: { query: string }) {
+export function EmptySearch({
+  query,
+  canAdd,
+  onAdd,
+}: {
+  query: string;
+  canAdd: boolean;
+  onAdd: () => void;
+}) {
   const trimmed = query.trim();
   const isDigits = /^\d{4}$/.test(trimmed);
   return (
@@ -13,12 +21,15 @@ export function EmptySearch({ query }: { query: string }) {
       </p>
       <button
         type="button"
-        disabled
-        className="mt-6 h-12 w-full rounded-card bg-primary px-4 text-[16px] font-semibold text-on-primary disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={!canAdd}
+        onClick={onAdd}
+        className="mt-6 h-12 w-full rounded-card bg-primary px-4 text-[16px] font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isDigits ? "Add as newcomer" : `Add ${trimmed} as newcomer`}
       </button>
-      <p className="mt-2 text-[13px] text-muted">Adding newcomers is coming soon.</p>
+      {!canAdd && (
+        <p className="mt-2 text-[13px] text-muted">Adding newcomers is closed right now.</p>
+      )}
     </div>
   );
 }

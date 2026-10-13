@@ -3,6 +3,7 @@ import {
   capitalize,
   formatClockTime,
   formatDuration,
+  formatMonthDay,
   formatServiceDate,
   formatTimeOfDay,
   initials,
@@ -31,6 +32,12 @@ describe("formatServiceDate", () => {
   it("formats a calendar date without shifting it", () => {
     expect(formatServiceDate("2026-09-27")).toBe("Sun, Sep 27");
     expect(formatServiceDate("2026-11-01")).toBe("Sun, Nov 1");
+  });
+});
+
+describe("formatMonthDay", () => {
+  it("formats a calendar date as month and day", () => {
+    expect(formatMonthDay("2026-09-27")).toBe("Sep 27");
   });
 });
 
