@@ -3,9 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { markPresentAction, unmarkAction } from "@/app/[church]/attendance/actions";
-import { Chip } from "@/components/ui";
+import { CheckIcon, Chip } from "@/components/ui";
 import { formatServiceDate } from "@/lib/format";
+import { saveNewcomerPrefill, takeAttendanceFlash } from "@/lib/client/handoff";
+import { useHandoff } from "@/lib/client/use-handoff";
 import { searchRoster } from "@/lib/rules";
+import { prefillFromSearch } from "@/lib/validation/newcomer";
 import type { AttendanceScreenData } from "@/lib/server/attendance-screen";
 import type { ClientMark, ClientRosterEntry } from "@/lib/server/client-roster";
 import { AttendanceHeader, STATE_SUBTITLES } from "./AttendanceHeader";
@@ -41,7 +44,12 @@ export function AttendanceScreen({ data }: { data: AttendanceScreenData }) {
   }
 
   const [pending, setPending] = useState<ReadonlySet<string>>(new Set());
-  const [query, setQuery] = useState("");
+  // A confirmation handed over by the add newcomer form, with a search that shows the person.
+  const flash = useHandoff(takeAttendanceFlash);
+  const [typedQuery, setQuery] = useState<string | null>(null);
+  const query = typedQuery ?? flash.value?.query ?? "";
+  const [flashDismissed, setFlashDismissed] = useState(false);
+  const success = flashDismissed ? null : (flash.value?.message ?? null);
   const [filter, setFilter] = useState<Filter>("all");
   const [error, setError] = useState<string | null>(null);
   const errorTimer = useRef<number | undefined>(undefined);
@@ -59,6 +67,17 @@ export function AttendanceScreen({ data }: { data: AttendanceScreenData }) {
   }, [crossedBoundary, router]);
 
   useEffect(() => () => window.clearTimeout(errorTimer.current), []);
+
+  useEffect(() => {
+    if (!success) return;
+    const id = window.setTimeout(() => setFlashDismissed(true), 5000);
+    return () => window.clearTimeout(id);
+  }, [success]);
+
+  function addNewcomer() {
+    saveNewcomerPrefill(prefillFromSearch(query));
+    router.push(`/${data.church}/newcomers/new`);
+  }
 
   function showError(message: string) {
     setError(message);
@@ -192,7 +211,7 @@ export function AttendanceScreen({ data }: { data: AttendanceScreenData }) {
             ))}
           </ul>
         ) : searching ? (
-          <EmptySearch query={query} />
+          <EmptySearch query={query} canAdd={canMark} onAdd={addNewcomer} />
         ) : (
           <p className="rounded-card border border-border bg-surface px-5 py-7 text-center text-[15px] text-muted">
             {filter === "not-ticked" ? "Everyone on the list is ticked." : "No one to show."}
@@ -208,6 +227,18 @@ export function AttendanceScreen({ data }: { data: AttendanceScreenData }) {
         {error && (
           <p className="pointer-events-auto rounded-card bg-ink px-4 py-3 text-[14px] text-on-primary shadow-lg">
             {error}
+          </p>
+        )}
+      </div>
+
+      <div
+        role="status"
+        className="pointer-events-none fixed inset-x-0 bottom-[76px] z-30 mx-auto flex max-w-[430px] justify-center px-4"
+      >
+        {success && !error && (
+          <p className="pointer-events-auto flex items-center gap-2 rounded-card bg-ink px-4 py-3 text-[14px] text-on-primary shadow-lg">
+            <CheckIcon className="size-4 shrink-0" />
+            {success}
           </p>
         )}
       </div>

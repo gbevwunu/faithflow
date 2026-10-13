@@ -20,6 +20,7 @@
   --ff-success-light: #e6f4ec;
   --ff-warning: #9a5d00;
   --ff-warning-light: #fff4e0;
+  --ff-danger: #b42318;
 
   --ff-radius-card: 12px;
   --ff-radius-input: 10px;
@@ -44,6 +45,7 @@
   --color-success-light: var(--ff-success-light);
   --color-warning: var(--ff-warning);
   --color-warning-light: var(--ff-warning-light);
+  --color-danger: var(--ff-danger);
 
   --radius-card: var(--ff-radius-card);
   --radius-input: var(--ff-radius-input);

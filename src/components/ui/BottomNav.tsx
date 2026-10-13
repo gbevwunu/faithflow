@@ -17,7 +17,7 @@ export function BottomNav({ church }: { church: string }) {
     >
       <ul className="mx-auto grid h-[61px] max-w-[430px] grid-cols-2">
         {items.map((item) => {
-          const active = pathname === item.href;
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <li key={item.href} className="flex">
               <Link
