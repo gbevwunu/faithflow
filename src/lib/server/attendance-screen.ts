@@ -35,6 +35,8 @@ export interface AttendanceScreenData {
   /** Instants of the team lock and the end of corrections on the service date. */
   teamLockAt: string;
   correctionEndAt: string;
+  /** Admins only: some people are still marked present from a previous service. */
+  staleMarkWarning: boolean;
   roster: ClientRosterEntry[];
 }
 
@@ -49,7 +51,14 @@ export async function loadAttendanceScreen(
   const window = getMarkingWindow(now, session.role, config);
   // On other days, show the latest service day's roster, read-only.
   const serviceDate = getLatestServiceDate(now, config);
-  const roster = await dataSource.getRoster(serviceDate);
+  const isServiceDay = serviceDate === getServiceDate(now, config);
+  const entries = await dataSource.getRoster(serviceDate);
+  // On a service day, a mark with no tick recorded today is stale: show it as not ticked so
+  // volunteers tick the person fresh. The data itself is never changed here.
+  const staleCount = isServiceDay ? entries.filter((e) => e.staleMark).length : 0;
+  const roster = isServiceDay
+    ? entries.map((e) => (e.staleMark ? { ...e, mark: null } : e))
+    : entries;
 
   return {
     church: config.slug,
@@ -59,7 +68,7 @@ export async function loadAttendanceScreen(
     serviceDay: schedule.serviceDay,
     serviceTitle: `${capitalize(schedule.serviceDay)} Service`,
     serviceDate,
-    isServiceDay: serviceDate === getServiceDate(now, config),
+    isServiceDay,
     role: session.role,
     viewerName: session.name,
     now: now.toISOString(),
@@ -73,6 +82,7 @@ export async function loadAttendanceScreen(
       schedule.correctionEndTime,
       timezone,
     ).toISOString(),
+    staleMarkWarning: session.role === "admin" && staleCount > 0,
     roster: toClientRoster(roster, config),
   };
 }

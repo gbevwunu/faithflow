@@ -58,4 +58,9 @@ export interface AttendanceMark {
 export interface RosterEntry {
   person: Person;
   mark: AttendanceMark | null;
+  /**
+   * Marked present in the data source without any tick recorded for this service date,
+   * typically left over from a previous service when the weekly reset was missed.
+   */
+  staleMark?: boolean;
 }

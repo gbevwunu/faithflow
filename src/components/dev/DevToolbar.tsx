@@ -2,7 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { clearDevNowAction, setDevNowAction, setDevRoleAction } from "@/app/[church]/dev-actions";
+import {
+  clearDevNowAction,
+  seedStagingSheetAction,
+  setDevNowAction,
+  setDevRoleAction,
+} from "@/app/[church]/dev-actions";
 import type { TeamRole } from "@/lib/config";
 import { capitalize, formatClockTime, formatServiceDate } from "@/lib/format";
 import type { DevToolbarData } from "@/lib/server/dev-toolbar";
@@ -12,6 +17,16 @@ export function DevToolbar({ data }: { data: DevToolbarData }) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
   const [custom, setCustom] = useState("");
+  const [seedMessage, setSeedMessage] = useState<string | null>(null);
+
+  function seed() {
+    setSeedMessage(null);
+    startTransition(async () => {
+      const result = await seedStagingSheetAction(data.church);
+      setSeedMessage(result.message);
+      if (result.ok) router.refresh();
+    });
+  }
 
   function run(action: () => Promise<{ ok: boolean }>) {
     startTransition(async () => {
@@ -114,6 +129,24 @@ export function DevToolbar({ data }: { data: DevToolbarData }) {
               Set
             </button>
           </form>
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-2 font-medium">Staging spreadsheet</legend>
+          <p className="text-muted">
+            Fills an empty spreadsheet whose title contains STAGING with fake people.
+          </p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={seed}
+            className={`${buttonClass} ${pressedClass(false)} self-start`}
+          >
+            Seed staging sheet
+          </button>
+          <p role="status" className="text-muted">
+            {seedMessage}
+          </p>
         </fieldset>
       </div>
     </details>

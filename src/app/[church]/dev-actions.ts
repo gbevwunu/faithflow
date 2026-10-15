@@ -4,7 +4,11 @@ import "server-only";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { getChurchConfig, teamRoleSchema } from "@/lib/config";
-import { zonedTimeToInstant } from "@/lib/rules";
+import { getLatestServiceDate, zonedTimeToInstant } from "@/lib/rules";
+import { DataSourceConfigError, getSheetsClient } from "@/lib/server/data-source";
+import { GoogleAuthConfigError } from "@/lib/server/google-auth";
+import { MissingHeaderError } from "@/lib/server/sheets/layout";
+import { SeedRefusedError, seedStagingSheet } from "@/lib/server/sheets/seed-staging";
 import { DEV_NOW_COOKIE, DEV_ROLE_COOKIE, devToolsEnabled } from "@/lib/server/dev-tools";
 
 const cookieOptions = {
@@ -50,4 +54,53 @@ export async function clearDevNowAction(): Promise<{ ok: boolean }> {
   if (!devToolsEnabled()) return { ok: false };
   (await cookies()).delete(DEV_NOW_COOKIE);
   return { ok: true };
+}
+
+/**
+ * Development only: fills an empty staging spreadsheet with fake people. The seed itself
+ * refuses unless the spreadsheet title contains "STAGING" and it has no data rows.
+ */
+export async function seedStagingSheetAction(
+  church: unknown,
+): Promise<{ ok: boolean; message: string }> {
+  if (!devToolsEnabled()) return { ok: false, message: "Development tools are not enabled." };
+  const parsed = z.string().min(1).max(64).safeParse(church);
+  if (!parsed.success) return { ok: false, message: "Unknown church." };
+
+  let config;
+  try {
+    config = getChurchConfig(parsed.data);
+  } catch {
+    return { ok: false, message: "Unknown church." };
+  }
+  if (config.dataSource.type !== "google-sheets") {
+    return { ok: false, message: "This church does not use Google Sheets." };
+  }
+
+  try {
+    const { client } = getSheetsClient(config.dataSource);
+    const result = await seedStagingSheet({
+      client,
+      layout: config.dataSource,
+      firstVisitDate: getLatestServiceDate(new Date(), config),
+    });
+    return {
+      ok: true,
+      message: `Seeded ${result.members} members and ${result.newcomers} newcomers.`,
+    };
+  } catch (error) {
+    if (
+      error instanceof SeedRefusedError ||
+      error instanceof MissingHeaderError ||
+      error instanceof DataSourceConfigError ||
+      error instanceof GoogleAuthConfigError
+    ) {
+      return { ok: false, message: error.message };
+    }
+    console.error("Seeding the staging sheet failed", {
+      church: config.slug,
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
+    return { ok: false, message: "Seeding failed. Check the server logs." };
+  }
 }
