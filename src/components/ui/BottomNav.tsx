@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function BottomNav({ church }: { church: string }) {
+/** basePath is "" on a church subdomain and "/<slug>" for path-based URLs. */
+export function BottomNav({ basePath }: { basePath: string }) {
   const pathname = usePathname();
   const items = [
-    { href: `/${church}/attendance`, label: "Attendance" },
-    { href: `/${church}/newcomers`, label: "Newcomers" },
+    { href: `${basePath}/attendance`, label: "Attendance" },
+    { href: `${basePath}/newcomers`, label: "Newcomers" },
   ];
 
   return (

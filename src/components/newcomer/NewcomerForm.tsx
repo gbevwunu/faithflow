@@ -36,16 +36,28 @@ const FIELD_ORDER: NewcomerField[] = [
   "heardViaDetail",
 ];
 
-export function NewcomerForm({ church }: { church: string }) {
+export function NewcomerForm({ church, basePath }: { church: string; basePath: string }) {
   // Prefill from the attendance search, handed over in this tab only.
   const prefill = useHandoff(takeNewcomerPrefill);
   if (!prefill.ready) return <div className="min-h-[60vh]" aria-busy="true" />;
   return (
-    <NewcomerFormFields church={church} initial={{ ...EMPTY_NEWCOMER_FORM, ...prefill.value }} />
+    <NewcomerFormFields
+      church={church}
+      basePath={basePath}
+      initial={{ ...EMPTY_NEWCOMER_FORM, ...prefill.value }}
+    />
   );
 }
 
-function NewcomerFormFields({ church, initial }: { church: string; initial: NewcomerFormInput }) {
+function NewcomerFormFields({
+  church,
+  basePath,
+  initial,
+}: {
+  church: string;
+  basePath: string;
+  initial: NewcomerFormInput;
+}) {
   const router = useRouter();
   const [values, setValues] = useState<NewcomerFormInput>(initial);
   const [touched, setTouched] = useState<ReadonlySet<NewcomerField>>(new Set());
@@ -151,7 +163,7 @@ function NewcomerFormFields({ church, initial }: { church: string; initial: Newc
             : `${name} added. Tick them on the list to mark them present.`,
           query: name,
         });
-        router.push(`/${church}/attendance`);
+        router.push(`${basePath}/attendance`);
         return; // Stay busy so the form cannot be submitted again while leaving.
       }
       if (result.code === "invalid-fields") {
@@ -183,7 +195,7 @@ function NewcomerFormFields({ church, initial }: { church: string; initial: Newc
           message: `${result.match.firstName} ${result.match.lastInitial}. marked present`,
           query: result.match.firstName,
         });
-        router.push(`/${church}/attendance`);
+        router.push(`${basePath}/attendance`);
         return;
       }
       setFormError(result.error);

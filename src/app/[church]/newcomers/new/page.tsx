@@ -4,6 +4,7 @@ import { NewcomerForm } from "@/components/newcomer/NewcomerForm";
 import { capitalize, formatMonthDay } from "@/lib/format";
 import { getLatestServiceDate, getMarkingWindow } from "@/lib/rules";
 import { getChurchConfigOrNotFound } from "@/lib/server/church";
+import { getChurchBasePath } from "@/lib/server/church-paths";
 import { getNow, getSession } from "@/lib/server/request-context";
 
 export async function generateMetadata({
@@ -16,6 +17,7 @@ export async function generateMetadata({
 export default async function AddNewcomerPage({ params }: PageProps<"/[church]/newcomers/new">) {
   const { church } = await params;
   const config = getChurchConfigOrNotFound(church);
+  const basePath = await getChurchBasePath(config.slug);
   const session = await getSession(config);
   const now = await getNow();
   const allowed = session ? getMarkingWindow(now, session.role, config).allowed : false;
@@ -26,7 +28,7 @@ export default async function AddNewcomerPage({ params }: PageProps<"/[church]/n
     <>
       <header className={`${allowed ? "bg-primary" : "bg-ink"} px-5 pt-10 pb-5 text-on-primary`}>
         <Link
-          href={`/${config.slug}/attendance`}
+          href={`${basePath}/attendance`}
           className="-ml-1 inline-flex min-h-11 items-center gap-1.5 px-1 text-[14px] text-on-primary/80 focus-visible:outline-2 focus-visible:outline-on-primary"
         >
           <span aria-hidden="true">←</span> Back to attendance
@@ -39,7 +41,7 @@ export default async function AddNewcomerPage({ params }: PageProps<"/[church]/n
       </header>
 
       {allowed ? (
-        <NewcomerForm church={config.slug} />
+        <NewcomerForm church={config.slug} basePath={basePath} />
       ) : (
         <main className="px-4 pt-4 pb-28">
           <p className="rounded-card border border-border bg-surface px-5 py-7 text-center text-[15px] text-muted">

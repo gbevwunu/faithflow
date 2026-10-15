@@ -16,6 +16,8 @@ import type { Session } from "./request-context";
 /** Everything the attendance screen needs, and nothing more. Safe to send to the browser. */
 export interface AttendanceScreenData {
   church: string;
+  /** "" on the church's subdomain, "/<slug>" for path-based URLs. */
+  basePath: string;
   churchName: string;
   timezone: string;
   serviceDay: string;
@@ -41,6 +43,7 @@ export async function loadAttendanceScreen(
   session: Session,
   now: Date,
   dataSource: DataSource,
+  basePath: string,
 ): Promise<AttendanceScreenData> {
   const { schedule, timezone } = config;
   const window = getMarkingWindow(now, session.role, config);
@@ -50,6 +53,7 @@ export async function loadAttendanceScreen(
 
   return {
     church: config.slug,
+    basePath,
     churchName: config.displayName,
     timezone,
     serviceDay: schedule.serviceDay,

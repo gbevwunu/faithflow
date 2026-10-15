@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getChurchConfigOrNotFound } from "@/lib/server/church";
+import { getChurchBasePath } from "@/lib/server/church-paths";
 
 export async function generateMetadata({
   params,
@@ -12,6 +13,7 @@ export async function generateMetadata({
 export default async function NewcomersPage({ params }: PageProps<"/[church]/newcomers">) {
   const { church } = await params;
   const config = getChurchConfigOrNotFound(church);
+  const basePath = await getChurchBasePath(config.slug);
   return (
     <>
       <header className="bg-primary px-5 pt-12 pb-5 text-on-primary">
@@ -20,7 +22,7 @@ export default async function NewcomersPage({ params }: PageProps<"/[church]/new
       </header>
       <main className="flex flex-col gap-4 px-4 pt-4 pb-28">
         <Link
-          href={`/${config.slug}/newcomers/new`}
+          href={`${basePath}/newcomers/new`}
           className="flex h-[52px] items-center justify-center rounded-card bg-primary px-4 text-[17px] font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           Add newcomer

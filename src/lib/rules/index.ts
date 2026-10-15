@@ -9,3 +9,4 @@ export {
   type ZonedDateTime,
 } from "./time";
 export { getMarkingWindow, type MarkingState, type MarkingWindow } from "./marking-window";
+export { CHURCH_SLUG_PATTERN, RESERVED_SUBDOMAINS, churchSlugFromHost } from "./host";

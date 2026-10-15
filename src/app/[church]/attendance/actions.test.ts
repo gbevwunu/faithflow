@@ -216,7 +216,13 @@ describe("roster data sent to the browser", () => {
       markedBy: admin.id,
       isCorrection: false,
     });
-    const data = await loadAttendanceScreen(config, session, new Date(AT_4_59_PM), dataSource);
+    const data = await loadAttendanceScreen(
+      config,
+      session,
+      new Date(AT_4_59_PM),
+      dataSource,
+      "/newbreed",
+    );
     return { data, json: JSON.stringify(data) };
   }
 
