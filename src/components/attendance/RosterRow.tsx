@@ -36,11 +36,15 @@ export function RosterRow({
         </p>
         {mark ? (
           <p className="flex min-w-0 text-[13px] text-success-text">
-            <span className="truncate">Ticked by {mark.markedByName}</span>
-            <span className="shrink-0 whitespace-pre">
-              {" "}
-              · {formatClockTime(mark.markedAt, timezone)}
+            <span className="truncate">
+              {mark.markedByName ? `Ticked by ${mark.markedByName}` : "Ticked"}
             </span>
+            {mark.markedAt && (
+              <span className="shrink-0 whitespace-pre">
+                {" "}
+                · {formatClockTime(mark.markedAt, timezone)}
+              </span>
+            )}
           </p>
         ) : (
           <p className="truncate text-[13px] text-muted">

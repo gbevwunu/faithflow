@@ -52,14 +52,51 @@ export const mockDataSourceConfigSchema = z.object({
   type: z.literal("mock"),
 });
 
+const header = z.string().min(1);
+const tab = z.string().min(1).max(100);
+
+/** Sheet headers for each field, matched by exact header text, never by column position. */
+export const memberColumnsSchema = z.object({
+  personId: header,
+  firstName: header,
+  lastName: header,
+  phone: header,
+  attended: header,
+});
+
+export const newcomerColumnsSchema = z.object({
+  personId: header,
+  firstName: header,
+  lastName: header,
+  email: header,
+  phone: header,
+  heardVia: header,
+  invitedBy: header,
+  firstVisitDate: header,
+  attended: header,
+  birthday: header,
+  occupation: header,
+  consent: header,
+  optedOut: header,
+});
+
+export const tickLogColumnsSchema = z.object({
+  timestamp: header,
+  serviceDate: header,
+  personId: header,
+  list: header,
+  action: header,
+  markedBy: header,
+  correction: header,
+});
+
 export const googleSheetsDataSourceConfigSchema = z.object({
   type: z.literal("google-sheets"),
-  spreadsheetId: z.string().min(1),
-  memberTab: z.string().min(1),
-  newcomerTab: z.string().min(1),
-  tickLogTab: z.string().min(1),
-  /** Maps internal field names to spreadsheet header names. */
-  columns: z.record(z.string().min(1), z.string().min(1)),
+  /** Name of the environment variable holding the spreadsheet ID. The ID is never committed. */
+  spreadsheetIdEnv: z.string().regex(/^[A-Z][A-Z0-9_]*$/, "Expected an environment variable name"),
+  members: z.object({ tab, columns: memberColumnsSchema }),
+  newcomers: z.object({ tab, columns: newcomerColumnsSchema }),
+  tickLog: z.object({ tab, columns: tickLogColumnsSchema }),
 });
 
 export const dataSourceConfigSchema = z.discriminatedUnion("type", [
@@ -107,6 +144,9 @@ export type Branding = z.infer<typeof brandingSchema>;
 export type Schedule = z.infer<typeof scheduleSchema>;
 export type MockDataSourceConfig = z.infer<typeof mockDataSourceConfigSchema>;
 export type GoogleSheetsDataSourceConfig = z.infer<typeof googleSheetsDataSourceConfigSchema>;
+export type MemberColumns = z.infer<typeof memberColumnsSchema>;
+export type NewcomerColumns = z.infer<typeof newcomerColumnsSchema>;
+export type TickLogColumns = z.infer<typeof tickLogColumnsSchema>;
 export type DataSourceConfig = z.infer<typeof dataSourceConfigSchema>;
 export type TeamRole = z.infer<typeof teamRoleSchema>;
 export type TeamMember = z.infer<typeof teamMemberSchema>;

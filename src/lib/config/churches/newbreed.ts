@@ -18,7 +18,48 @@ export const newbreed = {
     newcomerThankYouTime: "18:00",
   },
   dataSource: {
-    type: "mock",
+    type: "google-sheets",
+    spreadsheetIdEnv: "NEWBREED_SPREADSHEET_ID",
+    members: {
+      tab: 'Template "26',
+      columns: {
+        personId: "Person ID",
+        firstName: "First Name",
+        lastName: "Last Name",
+        phone: "Phone Number",
+        attended: "Attended Church",
+      },
+    },
+    newcomers: {
+      tab: "New Comers 2026",
+      columns: {
+        personId: "Person ID",
+        firstName: "Name - First Name",
+        lastName: "Name - Last Name",
+        email: "Email",
+        phone: "Phone Number",
+        heardVia: "How did you find out about us?",
+        invitedBy: "Who invited you to church?",
+        firstVisitDate: "Date",
+        attended: "Attended Church",
+        birthday: "Birthday",
+        occupation: "Occupation",
+        consent: "Consent to Messages",
+        optedOut: "Opted Out",
+      },
+    },
+    tickLog: {
+      tab: "Tick Log",
+      columns: {
+        timestamp: "Timestamp",
+        serviceDate: "Service Date",
+        personId: "Person ID",
+        list: "List",
+        action: "Action",
+        markedBy: "Marked By",
+        correction: "Correction",
+      },
+    },
   },
   team: [
     {

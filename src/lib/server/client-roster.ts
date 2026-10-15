@@ -3,10 +3,13 @@ import "server-only";
 import { getTeamMemberName, type ChurchConfig } from "@/lib/config";
 import type { AttendanceMark, PersonList, RosterEntry } from "@/lib/data";
 
-/** A mark as the browser sees it: a display name instead of a team member id. */
+/**
+ * A mark as the browser sees it: a display name instead of a team member id. Both are null
+ * when the mark has no attribution, such as a tick made directly in the spreadsheet.
+ */
 export interface ClientMark {
-  markedByName: string;
-  markedAt: string;
+  markedByName: string | null;
+  markedAt: string | null;
 }
 
 /** A roster row as the browser sees it. No full phone, email or team member ids. */
@@ -21,8 +24,10 @@ export interface ClientRosterEntry {
 
 export function toClientMark(mark: AttendanceMark, config: ChurchConfig): ClientMark {
   return {
-    markedByName: getTeamMemberName(config, mark.markedBy) ?? "Former team member",
-    markedAt: mark.markedAt,
+    markedByName: mark.markedBy
+      ? (getTeamMemberName(config, mark.markedBy) ?? "Former team member")
+      : null,
+    markedAt: mark.markedAt || null,
   };
 }
 

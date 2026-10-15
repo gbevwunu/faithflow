@@ -164,6 +164,16 @@ export function AttendanceScreen({ data }: { data: AttendanceScreenData }) {
           msToCorrectionEnd={msToCorrectionEnd}
         />
 
+        {data.staleMarkWarning && (
+          <p
+            role="status"
+            className="rounded-card bg-warning-light px-3.5 py-3 text-[15px] leading-snug text-warning"
+          >
+            Some people are still marked present from a previous service. Ask an admin to check the
+            weekly reset.
+          </p>
+        )}
+
         <CounterCards
           present={present}
           notTicked={rows.length - present}

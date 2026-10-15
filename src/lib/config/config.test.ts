@@ -14,7 +14,13 @@ describe("church config", () => {
     const config = getChurchConfig("newbreed");
     expect(config.displayName).toBe("The NewBreed Church");
     expect(config.timezone).toBe("America/Winnipeg");
-    expect(config.dataSource.type).toBe("mock");
+    expect(config.dataSource).toMatchObject({
+      type: "google-sheets",
+      spreadsheetIdEnv: "NEWBREED_SPREADSHEET_ID",
+      members: { tab: 'Template "26' },
+      newcomers: { tab: "New Comers 2026" },
+      tickLog: { tab: "Tick Log" },
+    });
     expect(config.modules).toEqual({
       attendance: true,
       newcomerFollowUp: false,
@@ -56,6 +62,20 @@ describe("church config", () => {
     for (const raw of [badTime, badColor, badZone]) {
       expect(churchConfigSchema.safeParse(raw).success).toBe(false);
     }
+  });
+
+  it("never maps a members column to Immigration Status", () => {
+    const config = getChurchConfig("newbreed");
+    if (config.dataSource.type !== "google-sheets") throw new Error("expected google-sheets");
+    expect(Object.values(config.dataSource.members.columns)).not.toContain("Immigration Status");
+  });
+
+  it("rejects a spreadsheet ID in place of an environment variable name", () => {
+    const raw = {
+      ...newbreed,
+      dataSource: { ...newbreed.dataSource, spreadsheetIdEnv: "1AbCdEfGhIjKlMnOp" },
+    };
+    expect(churchConfigSchema.safeParse(raw).success).toBe(false);
   });
 
   it("requires sheet details for a google-sheets data source", () => {
