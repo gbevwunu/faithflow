@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CHURCH_SLUG_PATTERN } from "@/lib/rules/host";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
@@ -82,7 +83,12 @@ export const modulesSchema = z.object({
 });
 
 export const churchConfigSchema = z.object({
-  slug: z.string().regex(/^[a-z0-9-]+$/, "Expected lowercase letters, digits and dashes"),
+  slug: z
+    .string()
+    .regex(
+      CHURCH_SLUG_PATTERN,
+      "Expected a DNS label: lowercase letters, digits and hyphens, at most 63 characters, not starting or ending with a hyphen",
+    ),
   displayName: z.string().min(1),
   branding: brandingSchema,
   timezone: timezoneSchema,

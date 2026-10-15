@@ -5,6 +5,7 @@ import { capitalize, formatServiceDate } from "@/lib/format";
 import { getLatestServiceDate } from "@/lib/rules";
 import { loadAttendanceScreen } from "@/lib/server/attendance-screen";
 import { getChurchConfigOrNotFound } from "@/lib/server/church";
+import { getChurchBasePath } from "@/lib/server/church-paths";
 import { getDataSource } from "@/lib/server/data-source";
 import { getNow, getSession } from "@/lib/server/request-context";
 
@@ -40,6 +41,12 @@ export default async function AttendancePage({ params }: PageProps<"/[church]/at
     );
   }
 
-  const data = await loadAttendanceScreen(config, session, now, getDataSource(config));
+  const data = await loadAttendanceScreen(
+    config,
+    session,
+    now,
+    getDataSource(config),
+    await getChurchBasePath(config.slug),
+  );
   return <AttendanceScreen data={data} />;
 }

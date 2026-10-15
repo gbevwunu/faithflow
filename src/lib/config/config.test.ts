@@ -71,6 +71,23 @@ describe("church config", () => {
     expect(churchConfigSchema.safeParse(missingId).success).toBe(false);
     expect(churchConfigSchema.safeParse(duplicateIds).success).toBe(false);
   });
+  it.each([
+    ["a leading hyphen", "-newbreed"],
+    ["a trailing hyphen", "newbreed-"],
+    ["uppercase letters", "NewBreed"],
+    ["an underscore", "new_breed"],
+    ["a dot", "new.breed"],
+    ["an empty slug", ""],
+    ["64 characters", "a".repeat(64)],
+  ])("rejects a slug with %s", (_label, slug) => {
+    expect(churchConfigSchema.safeParse({ ...newbreed, slug }).success).toBe(false);
+  });
+
+  it("accepts slugs that are valid DNS labels", () => {
+    for (const slug of ["newbreed", "grace-chapel", "church2", "a".repeat(63)]) {
+      expect(churchConfigSchema.safeParse({ ...newbreed, slug }).success).toBe(true);
+    }
+  });
 });
 
 describe("getTeamMemberName", () => {

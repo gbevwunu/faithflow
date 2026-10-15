@@ -76,7 +76,7 @@ export function AttendanceScreen({ data }: { data: AttendanceScreenData }) {
 
   function addNewcomer() {
     saveNewcomerPrefill(prefillFromSearch(query));
-    router.push(`/${data.church}/newcomers/new`);
+    router.push(`${data.basePath}/newcomers/new`);
   }
 
   function showError(message: string) {
