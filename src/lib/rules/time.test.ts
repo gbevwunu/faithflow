@@ -3,6 +3,9 @@ import { getChurchConfig } from "@/lib/config";
 import { addDays, getLatestServiceDate, getServiceDate, zonedTimeToInstant } from "./time";
 
 const winnipeg = { timezone: "America/Winnipeg" };
+// Manitoba stays on UTC-5 from November 1, 2026, so daylight saving cases use Chicago, which
+// still changes between CDT (UTC-5) and CST (UTC-6).
+const chicago = { timezone: "America/Chicago" };
 
 describe("getServiceDate", () => {
   it("returns the church's local date, not the UTC date", () => {
@@ -17,30 +20,30 @@ describe("getServiceDate", () => {
     expect(getServiceDate(instant, { timezone: "UTC" })).toBe("2026-10-04");
   });
 
-  it("handles the day daylight saving time ends", () => {
+  it("handles the day daylight saving time ends in Chicago", () => {
     // Sunday November 1 runs from 00:00 CDT (05:00 UTC) to 24:00 CST (06:00 UTC next day).
-    expect(getServiceDate(new Date("2026-11-01T05:00:00Z"), winnipeg)).toBe("2026-11-01");
-    expect(getServiceDate(new Date("2026-11-02T05:59:59Z"), winnipeg)).toBe("2026-11-01");
-    expect(getServiceDate(new Date("2026-11-02T06:00:00Z"), winnipeg)).toBe("2026-11-02");
+    expect(getServiceDate(new Date("2026-11-01T05:00:00Z"), chicago)).toBe("2026-11-01");
+    expect(getServiceDate(new Date("2026-11-02T05:59:59Z"), chicago)).toBe("2026-11-01");
+    expect(getServiceDate(new Date("2026-11-02T06:00:00Z"), chicago)).toBe("2026-11-02");
   });
 });
 
 describe("zonedTimeToInstant", () => {
   it("converts local wall-clock time to the right instant across daylight saving", () => {
-    expect(zonedTimeToInstant("2026-10-04", "17:00", "America/Winnipeg").toISOString()).toBe(
+    expect(zonedTimeToInstant("2026-10-04", "17:00", "America/Chicago").toISOString()).toBe(
       "2026-10-04T22:00:00.000Z",
     );
-    expect(zonedTimeToInstant("2026-11-01", "17:00", "America/Winnipeg").toISOString()).toBe(
+    expect(zonedTimeToInstant("2026-11-01", "17:00", "America/Chicago").toISOString()).toBe(
       "2026-11-01T23:00:00.000Z",
     );
-    expect(zonedTimeToInstant("2026-03-08", "17:00", "America/Winnipeg").toISOString()).toBe(
+    expect(zonedTimeToInstant("2026-03-08", "17:00", "America/Chicago").toISOString()).toBe(
       "2026-03-08T22:00:00.000Z",
     );
   });
 
   it("resolves a time repeated by fall-back to its first occurrence", () => {
     // 01:30 happens at 06:30 UTC (CDT) and again at 07:30 UTC (CST).
-    expect(zonedTimeToInstant("2026-11-01", "01:30", "America/Winnipeg").toISOString()).toBe(
+    expect(zonedTimeToInstant("2026-11-01", "01:30", "America/Chicago").toISOString()).toBe(
       "2026-11-01T06:30:00.000Z",
     );
   });

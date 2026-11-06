@@ -24,7 +24,8 @@ describe("formatTimeOfDay", () => {
 describe("formatClockTime", () => {
   it("formats in the given timezone, not the machine's", () => {
     expect(formatClockTime("2026-10-04T15:42:00Z", "America/Winnipeg")).toBe("10:42 AM");
-    expect(formatClockTime("2026-11-01T23:00:00Z", "America/Winnipeg")).toBe("5:00 PM");
+    // After Chicago falls back to CST (UTC-6) on November 1, 2026.
+    expect(formatClockTime("2026-11-01T23:00:00Z", "America/Chicago")).toBe("5:00 PM");
   });
 });
 

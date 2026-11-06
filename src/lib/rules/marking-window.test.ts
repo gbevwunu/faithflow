@@ -107,9 +107,13 @@ describe("getMarkingWindow", () => {
     expect(getMarkingWindow(at("2026-10-05T04:59:00Z"), "admin", config).state).toBe("closed");
   });
 
-  describe("Sunday November 1, 2026, when daylight saving time ends (CST is UTC-6)", () => {
+  // Manitoba stays on UTC-5 from November 1, 2026, so the fall-back scenarios use a zone that
+  // still falls back that day. Chicago changes from CDT (UTC-5) to CST (UTC-6) at 2:00 AM.
+  describe("Sunday November 1, 2026, when daylight saving time ends in Chicago", () => {
+    const chicago = { ...config, timezone: "America/Chicago" };
+
     it("is open for team at 4:59 PM CST, closing at 5:00 PM CST", () => {
-      const window = getMarkingWindow(at("2026-11-01T22:59:00Z"), "team", config);
+      const window = getMarkingWindow(at("2026-11-01T22:59:00Z"), "team", chicago);
       expect(window).toEqual({
         allowed: true,
         state: "open",
@@ -118,11 +122,11 @@ describe("getMarkingWindow", () => {
     });
 
     it("is still open at 22:00 UTC, which would be 5:00 PM under the old offset", () => {
-      expect(getMarkingWindow(at("2026-11-01T22:00:00Z"), "team", config).state).toBe("open");
+      expect(getMarkingWindow(at("2026-11-01T22:00:00Z"), "team", chicago).state).toBe("open");
     });
 
     it("locks team at 5:00 PM CST", () => {
-      expect(getMarkingWindow(at("2026-11-01T23:00:00Z"), "team", config)).toEqual({
+      expect(getMarkingWindow(at("2026-11-01T23:00:00Z"), "team", chicago)).toEqual({
         allowed: false,
         state: "corrections",
         closesAt: null,
@@ -130,18 +134,18 @@ describe("getMarkingWindow", () => {
     });
 
     it("lets admin correct until 7:00 PM CST", () => {
-      expect(getMarkingWindow(at("2026-11-02T00:59:00Z"), "admin", config)).toEqual({
+      expect(getMarkingWindow(at("2026-11-02T00:59:00Z"), "admin", chicago)).toEqual({
         allowed: true,
         state: "corrections",
         closesAt: at("2026-11-02T01:00:00.000Z"),
       });
-      expect(getMarkingWindow(at("2026-11-02T01:00:00Z"), "admin", config).state).toBe("closed");
+      expect(getMarkingWindow(at("2026-11-02T01:00:00Z"), "admin", chicago).state).toBe("closed");
     });
 
     it("is open during the repeated 1 AM hour", () => {
       // 06:30 UTC is 01:30 CDT, 07:30 UTC is 01:30 CST.
-      expect(getMarkingWindow(at("2026-11-01T06:30:00Z"), "team", config).state).toBe("open");
-      expect(getMarkingWindow(at("2026-11-01T07:30:00Z"), "team", config).state).toBe("open");
+      expect(getMarkingWindow(at("2026-11-01T06:30:00Z"), "team", chicago).state).toBe("open");
+      expect(getMarkingWindow(at("2026-11-01T07:30:00Z"), "team", chicago).state).toBe("open");
     });
   });
 });
