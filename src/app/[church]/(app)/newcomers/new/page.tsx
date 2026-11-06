@@ -5,7 +5,8 @@ import { capitalize, formatMonthDay } from "@/lib/format";
 import { getLatestServiceDate, getMarkingWindow } from "@/lib/rules";
 import { getChurchConfigOrNotFound } from "@/lib/server/church";
 import { getChurchBasePath } from "@/lib/server/church-paths";
-import { getNow, getSession } from "@/lib/server/request-context";
+import { getPageSession } from "@/lib/server/page-session";
+import { getNow } from "@/lib/server/request-context";
 
 export async function generateMetadata({
   params,
@@ -18,7 +19,7 @@ export default async function AddNewcomerPage({ params }: PageProps<"/[church]/n
   const { church } = await params;
   const config = getChurchConfigOrNotFound(church);
   const basePath = await getChurchBasePath(config.slug);
-  const session = await getSession(config);
+  const session = await getPageSession(config, basePath);
   const now = await getNow();
   const allowed = session ? getMarkingWindow(now, session.role, config).allowed : false;
   const serviceTitle = `${capitalize(config.schedule.serviceDay)} Service`;
@@ -47,7 +48,7 @@ export default async function AddNewcomerPage({ params }: PageProps<"/[church]/n
           <p className="rounded-card border border-border bg-surface px-5 py-7 text-center text-[15px] text-muted">
             {session
               ? "Adding newcomers is closed right now. It follows the same times as ticking attendance."
-              : "Sign-in is not available yet. Only signed-in team members can add newcomers."}
+              : "Only signed-in team members can add newcomers. Sign-in is only available on the live site."}
           </p>
         </main>
       )}

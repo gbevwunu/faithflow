@@ -12,6 +12,7 @@ export type RefusalCode =
   | "not-signed-in"
   | "window-closed"
   | "not-on-roster"
+  | "rate-limited"
   | "server-error";
 
 export interface Refusal {

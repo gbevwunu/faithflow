@@ -5,7 +5,7 @@
 
 ## A subdomain per church
 
-Each church is served from its own subdomain, `<slug>.<ROOT_DOMAIN>`, for example `newbreed.faithflow.app`. `src/proxy.ts` rewrites `newbreed.<ROOT_DOMAIN>/attendance` to the internal route `/newbreed/attendance`, so the address the team sees stays short. Links inside the app use a base path that is empty on the church's own subdomain. The proxy never redirects: an unknown church subdomain is rewritten like any other and its layout answers 404, so no response ever points the browser at a location taken from the request. The bare root domain and reserved subdomains (`www`, `app`, `admin`, `api`) show the FaithFlow placeholder page.
+Each church is served from its own subdomain, `<slug>.<ROOT_DOMAIN>`, for example `newbreed.faithflow.app`. `src/proxy.ts` rewrites `newbreed.<ROOT_DOMAIN>/attendance` to the internal route `/newbreed/attendance`, so the address the team sees stays short. Links inside the app use a base path that is empty on the church's own subdomain. The proxy never redirects: an unknown church subdomain is rewritten like any other and its layout answers 404, so no response ever points the browser at a location taken from the request. The bare root domain and reserved subdomains (`www`, `app`, `admin`, `api`) show the FaithFlow placeholder page. The sign-in routes under `/api/auth/` are shared by every church and are not rewritten; they read the church from the Host header (see 0007).
 
 ## Path URLs as the fallback
 

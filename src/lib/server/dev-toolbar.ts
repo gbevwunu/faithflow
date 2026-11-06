@@ -5,6 +5,7 @@ import type { ChurchConfig, TeamRole } from "@/lib/config";
 import { teamRoleSchema } from "@/lib/config";
 import { capitalize, formatTimeOfDay } from "@/lib/format";
 import { addDays, getLatestServiceDate } from "@/lib/rules";
+import { DEV_TEAM } from "./dev-team";
 import { DEV_ROLE_COOKIE } from "./dev-tools";
 import { getNow, isNowFaked } from "./request-context";
 
@@ -48,7 +49,7 @@ export async function loadDevToolbar(config: ChurchConfig): Promise<DevToolbarDa
     timezone: config.timezone,
     role: parsedRole.success ? parsedRole.data : "team",
     roles: (["team", "admin"] as const).flatMap((role) => {
-      const member = config.team.find((m) => m.role === role);
+      const member = DEV_TEAM.find((m) => m.role === role);
       return member ? [{ role, name: member.name }] : [];
     }),
     now: (await getNow()).toISOString(),

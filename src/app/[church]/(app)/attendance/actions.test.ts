@@ -3,6 +3,7 @@ import { getChurchConfig } from "@/lib/config";
 import { createMockDataSource, type DataSource } from "@/lib/data";
 import { loadAttendanceScreen } from "@/lib/server/attendance-screen";
 import { toClientRoster } from "@/lib/server/client-roster";
+import { DEV_TEAM } from "@/lib/server/dev-team";
 import { DEV_NOW_COOKIE, DEV_ROLE_COOKIE } from "@/lib/server/dev-tools";
 
 const cookieJar = new Map<string, string>();
@@ -15,11 +16,15 @@ vi.mock("next/headers", () => ({
 let dataSource: DataSource;
 vi.mock("@/lib/server/data-source", () => ({ getDataSource: () => dataSource }));
 
+// The Google session as auth() would return it on production.
+let authSession: { claims?: unknown } | null = null;
+vi.mock("@/lib/server/auth", () => ({ auth: async () => authSession }));
+
 const { markPresentAction, unmarkAction } = await import("./actions");
 
 const config = getChurchConfig("newbreed");
-const teamMember = config.team.find((m) => m.role === "team")!;
-const admin = config.team.find((m) => m.role === "admin")!;
+const teamMember = DEV_TEAM.find((m) => m.role === "team")!;
+const admin = DEV_TEAM.find((m) => m.role === "admin")!;
 
 // Sunday October 4, 2026 in Winnipeg (CDT, UTC-5).
 const SUNDAY = "2026-10-04";
@@ -203,6 +208,58 @@ describe("session and clock guards", () => {
   });
 });
 
+describe("with Google sign-in on production", () => {
+  const REAL_TEAM_MEMBER = {
+    id: "11111111-2222-4333-8444-555555555555",
+    name: "Real Volunteer",
+    email: "real.volunteer@example.com",
+    role: "team",
+  };
+  const signedIn = (church: string) => ({
+    claims: { church, email: REAL_TEAM_MEMBER.email, signedInAt: Date.parse(AT_4_59_PM) - 60_000 },
+  });
+
+  beforeEach(() => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("NEWBREED_TEAM", JSON.stringify([REAL_TEAM_MEMBER]));
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(AT_4_59_PM));
+    authSession = null;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("records the signed-in member from the team list, ignoring any markedBy sent", async () => {
+    authSession = signedIn("newbreed");
+    const personId = await someMemberId();
+    const result = await markPresentAction({ church: "newbreed", personId, markedBy: admin.id });
+    expect(result).toMatchObject({ ok: true, mark: { markedByName: "Real Volunteer" } });
+    expect(await markOf(personId)).toMatchObject({ markedBy: REAL_TEAM_MEMBER.id });
+  });
+
+  it("refuses a member signed in for another church", async () => {
+    authSession = signedIn("grace");
+    const result = await markPresentAction({ church: "newbreed", personId: await someMemberId() });
+    expect(result).toMatchObject({ ok: false, code: "not-signed-in" });
+  });
+
+  it("refuses a member removed from the team list", async () => {
+    authSession = signedIn("newbreed");
+    vi.stubEnv("NEWBREED_TEAM", "[]");
+    const result = await markPresentAction({ church: "newbreed", personId: await someMemberId() });
+    expect(result).toMatchObject({ ok: false, code: "not-signed-in" });
+  });
+
+  it("ignores the fake session and fake clock cookies", async () => {
+    signInAs("admin", AT_6_00_PM);
+    const result = await markPresentAction({ church: "newbreed", personId: await someMemberId() });
+    expect(result).toMatchObject({ ok: false, code: "not-signed-in" });
+  });
+});
+
 describe("roster data sent to the browser", () => {
   async function screenJson(role: "team" | "admin") {
     const session = {
@@ -235,7 +292,7 @@ describe("roster data sent to the browser", () => {
       expect(json).not.toContain(person.phone.slice(-10));
       expect(json).not.toContain(person.phone.slice(-7));
     }
-    for (const member of config.team) {
+    for (const member of DEV_TEAM) {
       expect(json).not.toContain(member.id);
     }
   });

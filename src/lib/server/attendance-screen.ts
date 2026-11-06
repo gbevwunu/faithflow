@@ -10,6 +10,7 @@ import {
   zonedTimeToInstant,
   type MarkingState,
 } from "@/lib/rules";
+import { realSignInEnabled } from "./auth-mode";
 import { toClientRoster, type ClientRosterEntry } from "./client-roster";
 import type { Session } from "./request-context";
 
@@ -26,6 +27,8 @@ export interface AttendanceScreenData {
   isServiceDay: boolean;
   role: TeamRole;
   viewerName: string;
+  /** Whether a "Sign out" button is shown: only with real sign-in, on production. */
+  canSignOut: boolean;
   /** The server's current instant (possibly faked in development). */
   now: string;
   state: MarkingState;
@@ -71,6 +74,7 @@ export async function loadAttendanceScreen(
     isServiceDay,
     role: session.role,
     viewerName: session.name,
+    canSignOut: realSignInEnabled(),
     now: now.toISOString(),
     state: window.state,
     allowed: window.allowed,

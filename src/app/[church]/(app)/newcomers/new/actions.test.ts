@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getChurchConfig } from "@/lib/config";
 import { createMockDataSource, type DataSource, type Person } from "@/lib/data";
 import { SHARED_PHONE } from "@/lib/data/mock/seed";
+import { DEV_TEAM } from "@/lib/server/dev-team";
 import { DEV_NOW_COOKIE, DEV_ROLE_COOKIE } from "@/lib/server/dev-tools";
 import { EMPTY_NEWCOMER_FORM, type NewcomerFormInput } from "@/lib/validation/newcomer";
 
@@ -10,16 +10,29 @@ vi.mock("next/headers", () => ({
   cookies: async () => ({
     get: (name: string) => (cookieJar.has(name) ? { name, value: cookieJar.get(name) } : undefined),
   }),
+  headers: async () => new Headers({ host: "newbreed.faithflow.app" }),
 }));
 
 let dataSource: DataSource;
 vi.mock("@/lib/server/data-source", () => ({ getDataSource: () => dataSource }));
 
+let rateLimited = false;
+const rateLimitChecks: { rule: string; key: string | undefined }[] = [];
+vi.mock("@/lib/server/rate-limit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/server/rate-limit")>();
+  return {
+    ...actual,
+    isRateLimited: async (rule: string, options: { rateLimitKey?: string }) => {
+      rateLimitChecks.push({ rule, key: options.rateLimitKey });
+      return rateLimited;
+    },
+  };
+});
+
 const { addNewcomerAction, checkPhoneAction, tickExistingAction } = await import("./actions");
 
-const config = getChurchConfig("newbreed");
-const teamMember = config.team.find((m) => m.role === "team")!;
-const admin = config.team.find((m) => m.role === "admin")!;
+const teamMember = DEV_TEAM.find((m) => m.role === "team")!;
+const admin = DEV_TEAM.find((m) => m.role === "admin")!;
 
 // Sunday October 4, 2026 in Winnipeg (CDT, UTC-5).
 const SUNDAY = "2026-10-04";
@@ -53,6 +66,8 @@ async function peopleWithPhone(phone: string): Promise<Person[]> {
 
 beforeEach(() => {
   cookieJar.clear();
+  rateLimited = false;
+  rateLimitChecks.length = 0;
   dataSource = createMockDataSource();
   vi.stubEnv("NODE_ENV", "development");
   vi.stubEnv("DEV_FAKE_SESSION", "");
@@ -204,6 +219,48 @@ describe("addNewcomerAction", () => {
         match: expect.objectContaining({ list: "newcomer" }),
       }),
     ]);
+  });
+});
+
+describe("phone lookup rate limit", () => {
+  it("counts each lookup against the signed-in member's own limit", async () => {
+    signInAs("team", AT_4_59_PM);
+    await checkPhoneAction({ church: "newbreed", phone: "(204) 555-0118" });
+    expect(rateLimitChecks).toEqual([
+      { rule: "phone-lookup", key: `phone:newbreed:${teamMember.id}` },
+    ]);
+  });
+
+  it("does not count a number that is not a valid phone", async () => {
+    signInAs("team", AT_4_59_PM);
+    await checkPhoneAction({ church: "newbreed", phone: "12" });
+    expect(rateLimitChecks).toEqual([]);
+  });
+
+  it("refuses a limited lookup without searching for the number", async () => {
+    signInAs("team", AT_4_59_PM);
+    rateLimited = true;
+    const findByPhone = vi.spyOn(dataSource, "findByPhone");
+    const result = await checkPhoneAction({ church: "newbreed", phone: "(204) 555-0118" });
+    expect(result).toMatchObject({ ok: false, code: "rate-limited" });
+    expect(JSON.stringify(result)).not.toContain("Kemi");
+    expect(findByPhone).not.toHaveBeenCalled();
+  });
+
+  it("refuses a limited tick-instead and a limited add, which can also reveal a match", async () => {
+    signInAs("team", AT_4_59_PM);
+    rateLimited = true;
+    const findByPhone = vi.spyOn(dataSource, "findByPhone");
+    const addNewcomer = vi.spyOn(dataSource, "addNewcomer");
+    expect(await tickExistingAction({ church: "newbreed", phone: "(204) 555-0118" })).toMatchObject(
+      { ok: false, code: "rate-limited" },
+    );
+    expect(await addNewcomerAction({ church: "newbreed", values: form })).toMatchObject({
+      ok: false,
+      code: "rate-limited",
+    });
+    expect(findByPhone).not.toHaveBeenCalled();
+    expect(addNewcomer).not.toHaveBeenCalled();
   });
 });
 

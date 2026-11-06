@@ -6,7 +6,7 @@ import {
   addNewcomerAction,
   checkPhoneAction,
   tickExistingAction,
-} from "@/app/[church]/newcomers/new/actions";
+} from "@/app/[church]/(app)/newcomers/new/actions";
 import { Chip } from "@/components/ui";
 import type { HeardViaSource } from "@/lib/data";
 import { saveAttendanceFlash, takeNewcomerPrefill } from "@/lib/client/handoff";
