@@ -61,20 +61,7 @@ export const newbreed = {
       },
     },
   },
-  team: [
-    {
-      id: "3f6c1d2e-8a4b-4c7d-9e5f-1a2b3c4d5e6f",
-      name: "Test Team Member",
-      email: "team.member@example.com",
-      role: "team",
-    },
-    {
-      id: "7b8e9f0a-1c2d-4e3f-a4b5-c6d7e8f9a0b1",
-      name: "Test Admin",
-      email: "admin@example.com",
-      role: "admin",
-    },
-  ],
+  teamEnv: "NEWBREED_TEAM",
   modules: {
     attendance: true,
     newcomerFollowUp: false,

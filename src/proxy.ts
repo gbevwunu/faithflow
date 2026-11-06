@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { churchSlugFromHost } from "@/lib/rules/host";
 
+/** Sign-in routes, shared by every church; they read the church from the Host header. */
+const AUTH_ROUTES_PREFIX = "/api/auth/";
+
 /**
  * On a church subdomain (newbreed.<ROOT_DOMAIN>), rewrites /attendance to /newbreed/attendance
  * so the visible URL stays short. Every other host falls through to path-based routing
@@ -12,6 +15,7 @@ export function proxy(request: NextRequest) {
   if (!slug) return NextResponse.next();
 
   const { pathname } = request.nextUrl;
+  if (pathname.startsWith(AUTH_ROUTES_PREFIX)) return NextResponse.next();
   if (pathname === `/${slug}` || pathname.startsWith(`/${slug}/`)) {
     return NextResponse.next();
   }

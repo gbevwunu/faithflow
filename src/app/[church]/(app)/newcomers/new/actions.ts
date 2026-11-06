@@ -1,16 +1,34 @@
 "use server";
 
 import "server-only";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { DuplicatePhoneError } from "@/lib/data";
 import { normalizePhone } from "@/lib/rules";
-import { getMarkingContext, logFailure, refuse, type Refusal } from "@/lib/server/marking-context";
+import {
+  getMarkingContext,
+  logFailure,
+  refuse,
+  type MarkingContext,
+  type Refusal,
+} from "@/lib/server/marking-context";
 import { toPhoneMatch, type PhoneMatch } from "@/lib/server/phone-match";
+import { RATE_LIMIT_RULES, isRateLimited, phoneLookupKey } from "@/lib/server/rate-limit";
 import { validateNewcomerForm, type NewcomerFieldErrors } from "@/lib/validation/newcomer";
 
 const churchSchema = z.string().min(1).max(64);
 const phoneLookupSchema = z.object({ church: churchSchema, phone: z.string().max(40) });
 const addNewcomerSchema = z.object({ church: churchSchema, values: z.unknown() });
+
+const RATE_LIMITED = "Too many lookups. Wait a few minutes and try again.";
+
+/** Every lookup that can reveal who owns a phone number counts against the member's limit. */
+async function phoneLookupLimited({ config, session }: MarkingContext): Promise<boolean> {
+  return isRateLimited(RATE_LIMIT_RULES.phoneLookup, {
+    headers: await headers(),
+    rateLimitKey: phoneLookupKey(config.slug, session.teamMemberId),
+  });
+}
 
 export type CheckPhoneResult =
   | { ok: true; status: "invalid" | "available" }
@@ -30,6 +48,7 @@ export async function checkPhoneAction(input: unknown): Promise<CheckPhoneResult
 
   const phone = normalizePhone(parsed.data.phone);
   if (!phone) return { ok: true, status: "invalid" };
+  if (await phoneLookupLimited(context)) return refuse("rate-limited", RATE_LIMITED);
 
   try {
     const person = await context.dataSource.findByPhone(phone);
@@ -55,6 +74,7 @@ export async function tickExistingAction(input: unknown): Promise<TickExistingRe
 
   const phone = normalizePhone(parsed.data.phone);
   if (!phone) return refuse("invalid-input", "Enter a 10-digit phone number.");
+  if (await phoneLookupLimited(context)) return refuse("rate-limited", RATE_LIMITED);
 
   try {
     const person = await dataSource.findByPhone(phone);
@@ -101,6 +121,8 @@ export async function addNewcomerAction(input: unknown): Promise<AddNewcomerResu
     };
   }
   const values = validation.data;
+  // A duplicate response names the existing person, so adding counts as a lookup too.
+  if (await phoneLookupLimited(context)) return refuse("rate-limited", RATE_LIMITED);
 
   let personId: string;
   try {

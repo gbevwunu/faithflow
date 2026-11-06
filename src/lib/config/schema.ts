@@ -108,10 +108,29 @@ export const teamRoleSchema = z.enum(["team", "admin"]);
 
 export const teamMemberSchema = z.object({
   id: z.uuid(),
-  name: z.string().min(1),
-  email: z.email(),
+  name: z.string().trim().min(1),
+  // Google account emails are compared in lowercase.
+  email: z
+    .string()
+    .trim()
+    .pipe(z.email())
+    .transform((email) => email.toLowerCase()),
   role: teamRoleSchema,
 });
+
+/** A church's team list. Ids and emails must be unique; issues never include the values. */
+export const teamListSchema = z.array(teamMemberSchema).superRefine((team, ctx) => {
+  if (new Set(team.map((m) => m.id)).size !== team.length) {
+    ctx.addIssue({ code: "custom", message: "Team member ids must be unique" });
+  }
+  if (new Set(team.map((m) => m.email)).size !== team.length) {
+    ctx.addIssue({ code: "custom", message: "Team member emails must be unique" });
+  }
+});
+
+const envNameSchema = z
+  .string()
+  .regex(/^[A-Z][A-Z0-9_]*$/, "Expected an environment variable name");
 
 export const modulesSchema = z.object({
   attendance: z.boolean(),
@@ -131,11 +150,8 @@ export const churchConfigSchema = z.object({
   timezone: timezoneSchema,
   schedule: scheduleSchema,
   dataSource: dataSourceConfigSchema,
-  team: z
-    .array(teamMemberSchema)
-    .refine((team) => new Set(team.map((m) => m.id)).size === team.length, {
-      message: "Team member ids must be unique",
-    }),
+  /** Name of the environment variable holding the team list. Team members are never committed. */
+  teamEnv: envNameSchema,
   modules: modulesSchema,
 });
 
@@ -150,6 +166,7 @@ export type TickLogColumns = z.infer<typeof tickLogColumnsSchema>;
 export type DataSourceConfig = z.infer<typeof dataSourceConfigSchema>;
 export type TeamRole = z.infer<typeof teamRoleSchema>;
 export type TeamMember = z.infer<typeof teamMemberSchema>;
+export type TeamList = readonly TeamMember[];
 export type Modules = z.infer<typeof modulesSchema>;
 export type ChurchConfig = z.infer<typeof churchConfigSchema>;
 export type ChurchConfigInput = z.input<typeof churchConfigSchema>;

@@ -14,9 +14,11 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@vercel/firewall": "^1.2.6",
     "@vercel/oidc": "^4.0.7",
     "google-auth-library": "^11.3.0",
     "next": "16.4.5",
+    "next-auth": "5.0.0-beta.32",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",

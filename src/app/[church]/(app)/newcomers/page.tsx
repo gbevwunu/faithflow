@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getChurchConfigOrNotFound } from "@/lib/server/church";
 import { getChurchBasePath } from "@/lib/server/church-paths";
+import { getPageSession } from "@/lib/server/page-session";
 
 export async function generateMetadata({
   params,
@@ -14,6 +15,7 @@ export default async function NewcomersPage({ params }: PageProps<"/[church]/new
   const { church } = await params;
   const config = getChurchConfigOrNotFound(church);
   const basePath = await getChurchBasePath(config.slug);
+  await getPageSession(config, basePath);
   return (
     <>
       <header className="bg-primary px-5 pt-12 pb-5 text-on-primary">

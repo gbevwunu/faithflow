@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { markPresentAction, unmarkAction } from "@/app/[church]/attendance/actions";
+import { markPresentAction, unmarkAction } from "@/app/[church]/(app)/attendance/actions";
 import { CheckIcon, Chip } from "@/components/ui";
 import { formatServiceDate } from "@/lib/format";
 import { saveNewcomerPrefill, takeAttendanceFlash } from "@/lib/client/handoff";
@@ -150,6 +150,7 @@ export function AttendanceScreen({ data }: { data: AttendanceScreenData }) {
         title={data.serviceTitle}
         subtitle={STATE_SUBTITLES[data.state]}
         markingClosed={!canMark}
+        account={data.canSignOut ? { church: data.church, name: data.viewerName } : undefined}
       />
 
       <main className="flex flex-1 flex-col gap-4 px-4 pt-4 pb-28">

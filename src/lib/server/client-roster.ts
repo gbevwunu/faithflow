@@ -2,6 +2,7 @@ import "server-only";
 
 import { getTeamMemberName, type ChurchConfig } from "@/lib/config";
 import type { AttendanceMark, PersonList, RosterEntry } from "@/lib/data";
+import { getTeam } from "./team";
 
 /**
  * A mark as the browser sees it: a display name instead of a team member id. Both are null
@@ -25,7 +26,7 @@ export interface ClientRosterEntry {
 export function toClientMark(mark: AttendanceMark, config: ChurchConfig): ClientMark {
   return {
     markedByName: mark.markedBy
-      ? (getTeamMemberName(config, mark.markedBy) ?? "Former team member")
+      ? (getTeamMemberName(getTeam(config), mark.markedBy) ?? "Former team member")
       : null,
     markedAt: mark.markedAt || null,
   };

@@ -4,7 +4,6 @@ import {
   UnknownChurchError,
   churchConfigSchema,
   getChurchConfig,
-  getTeamMemberName,
   parseChurchConfig,
 } from "@/lib/config";
 import { newbreed } from "@/lib/config/churches/newbreed";
@@ -83,13 +82,30 @@ describe("church config", () => {
     expect(churchConfigSchema.safeParse(raw).success).toBe(false);
   });
 
-  it("requires a UUID id on every team member, unique within the team", () => {
-    const [first, second] = newbreed.team;
-    if (!first || !second) throw new Error("Expected two seeded team members");
-    const missingId = { ...newbreed, team: [{ ...first, id: "not-a-uuid" }] };
-    const duplicateIds = { ...newbreed, team: [first, { ...second, id: first.id }] };
-    expect(churchConfigSchema.safeParse(missingId).success).toBe(false);
-    expect(churchConfigSchema.safeParse(duplicateIds).success).toBe(false);
+  it("names the team list's environment variable instead of listing team members", () => {
+    expect(getChurchConfig("newbreed").teamEnv).toBe("NEWBREED_TEAM");
+    expect(churchConfigSchema.safeParse({ ...newbreed, teamEnv: "newbreed-team" }).success).toBe(
+      false,
+    );
+    const withoutTeamEnv: Record<string, unknown> = { ...newbreed };
+    delete withoutTeamEnv.teamEnv;
+    expect(churchConfigSchema.safeParse(withoutTeamEnv).success).toBe(false);
+  });
+
+  it("no longer accepts team members in committed config", () => {
+    const withTeam = {
+      ...newbreed,
+      team: [
+        {
+          id: "3f6c1d2e-8a4b-4c7d-9e5f-1a2b3c4d5e6f",
+          name: "Test",
+          email: "test@example.com",
+          role: "team",
+        },
+      ],
+    };
+    const parsed = churchConfigSchema.safeParse(withTeam);
+    expect(parsed.success && "team" in parsed.data).toBe(false);
   });
   it.each([
     ["a leading hyphen", "-newbreed"],
@@ -107,19 +123,5 @@ describe("church config", () => {
     for (const slug of ["newbreed", "grace-chapel", "church2", "a".repeat(63)]) {
       expect(churchConfigSchema.safeParse({ ...newbreed, slug }).success).toBe(true);
     }
-  });
-});
-
-describe("getTeamMemberName", () => {
-  const config = getChurchConfig("newbreed");
-
-  it("resolves a team member id to their display name", () => {
-    for (const member of config.team) {
-      expect(getTeamMemberName(config, member.id)).toBe(member.name);
-    }
-  });
-
-  it("returns null for an id not on the team", () => {
-    expect(getTeamMemberName(config, "00000000-0000-4000-8000-000000000000")).toBeNull();
   });
 });

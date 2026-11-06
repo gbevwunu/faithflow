@@ -37,6 +37,26 @@ describe("proxy", () => {
     expect(rewrite && new URL(rewrite).search).toBe("?x=1");
   });
 
+  it("leaves the shared sign-in routes alone on a church subdomain", () => {
+    for (const [path, method] of [
+      ["/api/auth/callback/google?code=x", "GET"],
+      ["/api/auth/signout", "POST"],
+    ] as const) {
+      const result = run("newbreed.faithflow.app", path, method);
+      expect(result.rewrite).toBeNull();
+      expect(result.next).toBe("1");
+    }
+  });
+
+  it("still rewrites the church's sign-in page and lookalike paths", () => {
+    expect(rewrittenPath(run("newbreed.faithflow.app", "/sign-in").rewrite)).toBe(
+      "/newbreed/sign-in",
+    );
+    expect(rewrittenPath(run("newbreed.faithflow.app", "/api/authx").rewrite)).toBe(
+      "/newbreed/api/authx",
+    );
+  });
+
   it("rewrites server action POSTs on a subdomain too", () => {
     expect(rewrittenPath(run("newbreed.faithflow.app", "/attendance", "POST").rewrite)).toBe(
       "/newbreed/attendance",

@@ -7,7 +7,8 @@ import { loadAttendanceScreen } from "@/lib/server/attendance-screen";
 import { getChurchConfigOrNotFound } from "@/lib/server/church";
 import { getChurchBasePath } from "@/lib/server/church-paths";
 import { getDataSource } from "@/lib/server/data-source";
-import { getNow, getSession } from "@/lib/server/request-context";
+import { getPageSession } from "@/lib/server/page-session";
+import { getNow } from "@/lib/server/request-context";
 
 export async function generateMetadata({
   params,
@@ -19,7 +20,8 @@ export async function generateMetadata({
 export default async function AttendancePage({ params }: PageProps<"/[church]/attendance">) {
   const { church } = await params;
   const config = getChurchConfigOrNotFound(church);
-  const session = await getSession(config);
+  const basePath = await getChurchBasePath(config.slug);
+  const session = await getPageSession(config, basePath);
   const now = await getNow();
 
   if (!session) {
@@ -34,19 +36,14 @@ export default async function AttendancePage({ params }: PageProps<"/[church]/at
         />
         <main className="px-4 pt-4 pb-28">
           <p className="rounded-card border border-border bg-surface px-5 py-7 text-center text-[15px] text-muted">
-            Sign-in is not available yet. Attendance is only shown to signed-in team members.
+            Attendance is only shown to signed-in team members. Sign-in is only available on the
+            live site.
           </p>
         </main>
       </>
     );
   }
 
-  const data = await loadAttendanceScreen(
-    config,
-    session,
-    now,
-    getDataSource(config),
-    await getChurchBasePath(config.slug),
-  );
+  const data = await loadAttendanceScreen(config, session, now, getDataSource(config), basePath);
   return <AttendanceScreen data={data} />;
 }

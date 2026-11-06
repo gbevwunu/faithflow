@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getChurchConfig } from "@/lib/config";
 import { loadAttendanceScreen } from "./attendance-screen";
+import { DEV_TEAM } from "./dev-team";
 import type { Session } from "./request-context";
 import { createSheetsClient, type CellValue } from "./sheets/client";
 import { createGoogleSheetsDataSource } from "./sheets/google-sheets-data-source";
@@ -10,13 +11,20 @@ const config = getChurchConfig("newbreed");
 if (config.dataSource.type !== "google-sheets") throw new Error("expected google-sheets config");
 const layout = config.dataSource;
 
-const team = config.team.find((m) => m.role === "team")!;
-const admin = config.team.find((m) => m.role === "admin")!;
+const team = DEV_TEAM.find((m) => m.role === "team")!;
+const admin = DEV_TEAM.find((m) => m.role === "admin")!;
 const asSession = (member: typeof team): Session => ({
   teamMemberId: member.id,
   role: member.role,
   name: member.name,
 });
+
+// Names for marks come from the fake development team.
+beforeEach(() => {
+  vi.stubEnv("NODE_ENV", "development");
+  vi.stubEnv("VERCEL_ENV", "");
+});
+afterEach(() => vi.unstubAllEnvs());
 
 const SUNDAY = "2026-10-04";
 const SUNDAY_10AM = new Date("2026-10-04T15:00:00.000Z"); // 10:00 CDT

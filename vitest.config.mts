@@ -12,5 +12,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    // next-auth imports "next/server" without a file extension, which only resolves when the
+    // package is processed by Vite rather than loaded directly by Node.
+    server: { deps: { inline: ["next-auth"] } },
   },
 });
