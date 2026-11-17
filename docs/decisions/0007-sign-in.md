@@ -41,3 +41,7 @@ Phone lookups and sign-in attempts are limited with Vercel WAF rate-limiting rul
 - `sign-in`: 100 requests per 10 minutes per client IP, generous because volunteers share the church's Wi-Fi. Over the limit, sign-in answers 429 or shows a "try again" message.
 
 Checks run on production only, with a 1-second timeout. If the check fails, the request is let through and the error name logged, so a firewall problem never locks volunteers out on a Sunday. Counters are per region.
+
+## The Google button is the one exception to token colors
+
+The sign-in page's "Continue with Google" button follows Google's sign-in branding guidelines for the light theme instead of the church's tokens: white fill, a 1px `#747775` stroke, `#1F1F1F` text in Google Sans Medium 14/20, the official multicolor "G" as an inline SVG, and a pill shape. These colors are fixed by Google, so they are written in `src/components/auth/GoogleButton.tsx` and nowhere else. Its hover and pressed fills are Google's state layers flattened onto white, and its focus ring uses the church's primary color token. No other component may use colors outside the tokens. Google sign-in always shows the account chooser (`prompt: "select_account"`). When an account is refused because it is not on the team list, the same "Continue with Google" button is shown, keeping to the button text Google's guidelines allow, and it reopens the chooser so the person can pick another account.

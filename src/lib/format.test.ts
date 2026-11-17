@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   capitalize,
+  churchInitials,
   formatClockTime,
   formatDuration,
   formatLongDate,
@@ -67,5 +68,20 @@ describe("capitalize and initials", () => {
     expect(capitalize("sunday")).toBe("Sunday");
     expect(initials("Adaeze", "Okafor")).toBe("AO");
     expect(initials(" mary jane ", "nwosu")).toBe("MN");
+  });
+});
+
+describe("churchInitials", () => {
+  it.each([
+    ["The NewBreed Church", "NB"],
+    ["Grace Chapel", "GC"],
+    ["Church of the Redeemer", "R"],
+    ["grace community church", "GC"],
+    ["Bethel", "B"],
+    ["The Church", "TC"],
+    ["St. Mary's Parish", "SM"],
+    ["  New   Life  ", "NL"],
+  ])("%s is %s", (name, expected) => {
+    expect(churchInitials(name)).toBe(expected);
   });
 });

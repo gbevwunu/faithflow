@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { formatLongDate } from "@/lib/format";
-
-/** The company that builds and hosts FaithFlow for every church. */
-const PLATFORM_PROVIDER = "GB Tech";
+import { PLATFORM_PROVIDER } from "@/lib/platform";
 
 /** The date this policy text last changed. Update it whenever the wording below changes. */
 export const PRIVACY_LAST_UPDATED = "2026-11-16";
