@@ -152,6 +152,8 @@ export const churchConfigSchema = z.object({
   dataSource: dataSourceConfigSchema,
   /** Name of the environment variable holding the team list. Team members are never committed. */
   teamEnv: envNameSchema,
+  /** The church's address for privacy questions and removal requests, shown on its privacy page. */
+  privacyContactEmail: z.string().trim().pipe(z.email()),
   modules: modulesSchema,
 });
 

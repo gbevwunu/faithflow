@@ -32,6 +32,13 @@ describe("proxy", () => {
     );
   });
 
+  it("rewrites the public privacy page like any other page, without redirecting", () => {
+    const result = run("newbreed.faithflow.app", "/privacy");
+    expect(rewrittenPath(result.rewrite)).toBe("/newbreed/privacy");
+    expect(result.location).toBeNull();
+    expect(run("faithflow.app", "/newbreed/privacy").next).toBe("1");
+  });
+
   it("keeps the query string when rewriting", () => {
     const { rewrite } = run("newbreed.faithflow.app", "/attendance?x=1");
     expect(rewrite && new URL(rewrite).search).toBe("?x=1");

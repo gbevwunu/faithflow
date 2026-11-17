@@ -92,6 +92,18 @@ describe("church config", () => {
     expect(churchConfigSchema.safeParse(withoutTeamEnv).success).toBe(false);
   });
 
+  it("requires a valid privacy contact email", () => {
+    expect(getChurchConfig("newbreed").privacyContactEmail).toMatch(/^[^@\s]+@[^@\s]+$/);
+    for (const privacyContactEmail of ["", "not-an-email", "church.example"]) {
+      expect(churchConfigSchema.safeParse({ ...newbreed, privacyContactEmail }).success).toBe(
+        false,
+      );
+    }
+    const without: Record<string, unknown> = { ...newbreed };
+    delete without.privacyContactEmail;
+    expect(churchConfigSchema.safeParse(without).success).toBe(false);
+  });
+
   it("no longer accepts team members in committed config", () => {
     const withTeam = {
       ...newbreed,

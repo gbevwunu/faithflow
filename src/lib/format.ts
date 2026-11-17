@@ -39,6 +39,16 @@ export function formatMonthDay(date: IsoDate): string {
   }).format(new Date(`${date}T12:00:00Z`));
 }
 
+/** "2026-11-16" -> "November 16, 2026". */
+export function formatLongDate(date: IsoDate): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${date}T12:00:00Z`));
+}
+
 /** Remaining time as "2h 14m", "14m" or "less than a minute". */
 export function formatDuration(ms: number): string {
   const totalMinutes = Math.floor(Math.max(0, ms) / 60_000);

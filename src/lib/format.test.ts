@@ -3,6 +3,7 @@ import {
   capitalize,
   formatClockTime,
   formatDuration,
+  formatLongDate,
   formatMonthDay,
   formatServiceDate,
   formatTimeOfDay,
@@ -39,6 +40,13 @@ describe("formatServiceDate", () => {
 describe("formatMonthDay", () => {
   it("formats a calendar date as month and day", () => {
     expect(formatMonthDay("2026-09-27")).toBe("Sep 27");
+  });
+});
+
+describe("formatLongDate", () => {
+  it("formats a calendar date in full, regardless of the server timezone", () => {
+    expect(formatLongDate("2026-11-16")).toBe("November 16, 2026");
+    expect(formatLongDate("2026-01-01")).toBe("January 1, 2026");
   });
 });
 

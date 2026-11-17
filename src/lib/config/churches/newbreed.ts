@@ -62,6 +62,7 @@ export const newbreed = {
     },
   },
   teamEnv: "NEWBREED_TEAM",
+  privacyContactEmail: "newbreed.kap@gmail.com",
   modules: {
     attendance: true,
     newcomerFollowUp: false,
