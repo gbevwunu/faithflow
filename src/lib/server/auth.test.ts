@@ -73,6 +73,11 @@ describe("session settings", () => {
     ]);
     expect(config.pages).toEqual({ signIn: "/sign-in", error: "/sign-in" });
   });
+  it("always shows Google's account chooser instead of the browser's default account", () => {
+    const [provider] = config.providers;
+    const google = typeof provider === "function" ? provider() : provider;
+    expect(google?.options?.authorization).toEqual({ params: { prompt: "select_account" } });
+  });
 });
 
 describe("churchForHost", () => {

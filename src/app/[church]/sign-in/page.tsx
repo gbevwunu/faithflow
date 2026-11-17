@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignInCard } from "@/components/auth/SignInCard";
+import { churchInitials } from "@/lib/format";
 import { churchSlugFromHost, getSignInScreenState, type SessionResolution } from "@/lib/rules";
 import { realSignInEnabled } from "@/lib/server/auth-mode";
 import { getChurchConfigOrNotFound } from "@/lib/server/church";
@@ -42,10 +43,13 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
   return (
     <SignInCard
       churchName={config.displayName}
+      churchInitials={churchInitials(config.displayName)}
+      logoUrl={config.branding.logoUrl ?? null}
       churchHost={rootDomain ? `${config.slug}.${rootDomain}` : null}
       state={state}
       signInAction={signInWithGoogleAction.bind(null, config.slug)}
       attendanceHref={`${basePath}/attendance`}
+      privacyHref={`${basePath}/privacy`}
     />
   );
 }

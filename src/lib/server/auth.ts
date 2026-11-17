@@ -41,7 +41,7 @@ export function buildAuthConfig(hostChurch: ChurchConfig | null): NextAuthConfig
       Google({
         clientId: process.env.AUTH_GOOGLE_ID,
         clientSecret: process.env.AUTH_GOOGLE_SECRET,
-        // Always offer the account chooser, so "Use a different account" works.
+        // Always offer the account chooser, so someone refused can pick a different account.
         authorization: { params: { prompt: "select_account" } },
       }),
     ],
